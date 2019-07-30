@@ -23,9 +23,10 @@ public class MyWorkOrders {
     public List<MyWorkOrder> getMyOpenWorkOrders() throws InforException {
         String userCode = authenticationTools.getInforContext().getCredentials().getUsername();
         EAMUser eamUser = inforClient.getUserSetupService().readUserSetup(authenticationTools.getInforContext(), userCode);
-        //
         GridRequest gridRequest = new GridRequest("93", "WSJOBS", "2005");
-        gridRequest.getGridRequestFilters().add(new GridRequestFilter("assignedto", eamUser.getCernId(), "=", GridRequestFilter.JOINER.AND));
+		gridRequest.setUserFunctionName(gridRequest.getGridName());
+        //gridRequest.getGridRequestFilters().add(new GridRequestFilter("assignedto", eamUser.getCernId(), "=", GridRequestFilter.JOINER.AND));
+		gridRequest.getGridRequestFilters().add(new GridRequestFilter("assignedto", eamUser.getUserCode(), "=", GridRequestFilter.JOINER.AND));
         gridRequest.getGridRequestFilters().add(new GridRequestFilter("evt_rstatus", "R", "="));
         return inforClient.getTools().getGridTools().converGridResultToObject(MyWorkOrder.class,
                 createMap(),
@@ -39,6 +40,7 @@ public class MyWorkOrders {
         }
 
         GridRequest gridRequest = new GridRequest("93", "WSJOBS", "2005");
+		gridRequest.setUserFunctionName(gridRequest.getGridName());
         gridRequest.getGridRequestFilters().add(new GridRequestFilter("department", userDepartments, "IN", GridRequestFilter.JOINER.AND));
         gridRequest.getGridRequestFilters().add(new GridRequestFilter("evt_rstatus", "R", "="));
         return inforClient.getTools().getGridTools().converGridResultToObject(MyWorkOrder.class,
