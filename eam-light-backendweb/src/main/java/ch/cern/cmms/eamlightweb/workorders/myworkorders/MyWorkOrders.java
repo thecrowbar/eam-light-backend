@@ -11,6 +11,7 @@ import ch.cern.eam.wshub.core.tools.InforException;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import java.util.*;
+import java.util.logging.Level;
 
 @RequestScoped
 public class MyWorkOrders {
@@ -36,6 +37,7 @@ public class MyWorkOrders {
     public List<MyWorkOrder> getMyTeamsWorkOrders() throws InforException {
         String userDepartments = readUserDepartments();
         if (userDepartments.isEmpty()) {
+            inforClient.getTools().log(Level.SEVERE, "No userDepartment found!");
             return new LinkedList<>();
         }
 
