@@ -28,7 +28,6 @@ steps:
       Copy-Item -Force "$(mavenSettings.secureFilePath)" "${HOME}/.m2/settings.xml"
       Get-ChildItem -Path "${HOME}/.m2"
 
-
 - task: Maven@3
   displayName: 'Maven pom.xml'
   inputs:
