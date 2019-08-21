@@ -16,18 +16,27 @@ steps:
   inputs:
     secureFile: settings.xml
 
-#Your build pipeline references an undefined variable named ‘settingsxml.secureFilePath’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
-- powershell: |
-   New-Item -Type Directory -Force "${HOME}/.m2"
-   Copy-Item -Force "$(settingsxml.secureFilePath)" "${HOME}/.m2/settings.xml"
-   Get-ChildItem -Path "${HOME}/.m2"
-  displayName: 'PowerShell Script'
+-task: PowerShell@2
+  displayName: 'Copy maven settings.xml'
+  inputs:
+  targetType: 'inline'
+  script: |
+    New-Item -Type Directory -Force "${HOME}/.m2"
+    Copy-Item -Force "$(settingsxml.secureFilePath)" "${HOME}/.m2/settings.xml"
+    Get-ChildItem -Path "${HOME}/.m2"
 
-#Your build pipeline references an undefined variable named ‘Parameters.mavenPOMFile’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
 - task: Maven@3
   displayName: 'Maven pom.xml'
   inputs:
     mavenPomFile: '$(Parameters.mavenPOMFile)'
+    mavenOptions: '-Xmx3072m'
+    options: '-e' # get full errors for debugging build failure
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOptions: 'x64'
+    publishJUnitResults: true
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    goals: 'package deploy'
 
 - task: CopyFiles@2
   displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
