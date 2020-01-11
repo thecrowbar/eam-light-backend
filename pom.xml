@@ -12,7 +12,7 @@
 	</modules>
 
 	<properties>
-		<ch.cern.eam.eam-wshub-core.version>11.4.1-50-SNAPSHOT</ch.cern.eam.eam-wshub-core.version>
+		<ch.cern.eam.eam-wshub-core.version>11.4.1-68-SNAPSHOT</ch.cern.eam.eam-wshub-core.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
@@ -55,8 +55,8 @@
 	
 	<distributionManagement>
 		<repository>
-			<id>advoco-visualstudio-com-advoco-advoco</id>
-			<url>https://advoco.pkgs.visualstudio.com/_packaging/Advoco/maven/v1</url>
+			<id>local-maven</id>
+			<url>file:///home/ec2-user/maven_repository</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
