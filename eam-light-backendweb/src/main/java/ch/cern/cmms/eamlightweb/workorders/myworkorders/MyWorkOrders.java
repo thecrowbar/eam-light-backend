@@ -5,15 +5,14 @@ import ch.cern.eam.wshub.core.client.InforClient;
 import ch.cern.eam.wshub.core.services.entities.EAMUser;
 import ch.cern.eam.wshub.core.services.grids.entities.GridRequest;
 import ch.cern.eam.wshub.core.services.grids.entities.GridRequestFilter;
-import ch.cern.eam.wshub.core.services.grids.entities.GridRequestSort;
 import ch.cern.eam.wshub.core.tools.InforException;
 
-import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.*;
 import java.util.logging.Level;
 
-@RequestScoped
+@ApplicationScoped
 public class MyWorkOrders {
 
     @Inject
@@ -26,11 +25,10 @@ public class MyWorkOrders {
         EAMUser eamUser = inforClient.getUserSetupService().readUserSetup(authenticationTools.getInforContext(), userCode);
         GridRequest gridRequest = new GridRequest("93", "WSJOBS", "2005");
 		gridRequest.setUserFunctionName(gridRequest.getGridName());
-        //gridRequest.getGridRequestFilters().add(new GridRequestFilter("assignedto", eamUser.getCernId(), "=", GridRequestFilter.JOINER.AND));
-		gridRequest.getGridRequestFilters().add(new GridRequestFilter("assignedto", eamUser.getUserCode(), "=", GridRequestFilter.JOINER.AND));
-        gridRequest.getGridRequestFilters().add(new GridRequestFilter("evt_rstatus", "R", "="));
-        return inforClient.getTools().getGridTools().converGridResultToObject(MyWorkOrder.class,
-                createMap(),
+        gridRequest.addFilter("assignedto", eamUser.getUserCode(), "=", GridRequestFilter.JOINER.AND);
+        gridRequest.addFilter("evt_rstatus", "R", "=");
+        return inforClient.getTools().getGridTools().convertGridResultToObject(MyWorkOrder.class,
+                null,
                 inforClient.getGridsService().executeQuery(authenticationTools.getR5InforContext(), gridRequest));
     }
 
@@ -43,34 +41,24 @@ public class MyWorkOrders {
 
         GridRequest gridRequest = new GridRequest("93", "WSJOBS", "2005");
 		gridRequest.setUserFunctionName(gridRequest.getGridName());
-        gridRequest.getGridRequestFilters().add(new GridRequestFilter("department", userDepartments, "IN", GridRequestFilter.JOINER.AND));
-        gridRequest.getGridRequestFilters().add(new GridRequestFilter("evt_rstatus", "R", "="));
-        return inforClient.getTools().getGridTools().converGridResultToObject(MyWorkOrder.class,
-                createMap(),
+        gridRequest.addFilter("department", userDepartments, "IN", GridRequestFilter.JOINER.AND);
+        gridRequest.addFilter("evt_rstatus", "R", "=");
+        return inforClient.getTools().getGridTools().convertGridResultToObject(MyWorkOrder.class,
+                null,
                 inforClient.getGridsService().executeQuery(authenticationTools.getR5InforContext(), gridRequest));
     }
 
     public List<MyWorkOrder> getObjectWorkOrders(String equipmentCode) throws InforException {
         GridRequest gridRequest = new GridRequest("93", "WSJOBS", "2005");
-        gridRequest.getGridRequestFilters().add(new GridRequestFilter("equipment", equipmentCode, "="));
-        gridRequest.setGridRequestSorts(new GridRequestSort[] {new GridRequestSort("datecreated", "DESC")});
-        return inforClient.getTools().getGridTools().converGridResultToObject(MyWorkOrder.class,
-                createMap(),
+        gridRequest.setRowCount(2000);
+        gridRequest.setUseNative(false);
+        gridRequest.addFilter("equipment", equipmentCode, "=");
+        gridRequest.sortBy("datecreated", "DESC");
+        return inforClient.getTools().getGridTools().convertGridResultToObject(MyWorkOrder.class,
+                null,
                 inforClient.getGridsService().executeQuery(authenticationTools.getR5InforContext(), gridRequest));
     }
 
-    private Map<String, String> createMap() {
-        Map<String, String> map = new HashMap<>();
-        map.put("workordernum", "number"); // wo number
-        map.put("description", "desc"); // description
-        map.put("equipment", "object");   // equipment code
-        map.put("workorderstatus_display", "status");  // status
-        map.put("department", "mrc");   // department
-        map.put("schedstartdate", "schedulingStartDate");  // scheduled start date
-        map.put("schedenddate", "schedulingEndDate"); // scheduled end date
-        map.put("datecreated", "createdDate"); // scheduled end date
-        return map;
-    }
 
     private String readUserDepartments() throws InforException {
         String userCode = authenticationTools.getInforContext().getCredentials().getUsername();

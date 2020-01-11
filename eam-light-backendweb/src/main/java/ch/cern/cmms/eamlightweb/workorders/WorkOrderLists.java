@@ -1,11 +1,5 @@
 package ch.cern.cmms.eamlightweb.workorders;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import javax.inject.Inject;
 import javax.interceptor.Interceptors;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -14,44 +8,28 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
-import ch.cern.cmms.eamlightweb.tools.AuthenticationTools;
-import ch.cern.cmms.eamlightweb.tools.autocomplete.DropdownValues;
-import ch.cern.cmms.eamlightweb.tools.Pair;
+import ch.cern.cmms.eamlightweb.tools.EAMLightController;
 import ch.cern.cmms.eamlightweb.tools.interceptors.RESTLoggingInterceptor;
-import ch.cern.cmms.eamlightweb.user.UserTools;
-import ch.cern.eam.wshub.core.services.grids.entities.GridDataspy;
 import ch.cern.eam.wshub.core.services.grids.entities.GridRequest;
 import ch.cern.eam.wshub.core.tools.InforException;
 
 @Path("/wolists")
 @Interceptors({ RESTLoggingInterceptor.class })
-public class WorkOrderLists extends DropdownValues {
-
-	@Inject
-	private UserTools userTools;
-	@Inject
-	private AuthenticationTools authenticationTools;
+public class WorkOrderLists extends EAMLightController {
 
 	@GET
 	@Path("/problemcodes")
 	@Produces("application/json")
 	@Consumes("application/json")
 	public Response readProblemCodes(@QueryParam("woclass") String woclass, @QueryParam("objclass") String objclass) {
-		try {
-			GridRequest gridRequest = new GridRequest("LVRECO", GridRequest.GRIDTYPE.LOV);
-			//
-			gridRequest.getParams().put("param.objclass", objclass);
-			gridRequest.getParams().put("param.objclassorg", null);
-			gridRequest.getParams().put("param.clgroup", null);
-			gridRequest.getParams().put("parameter.equipmentorg", null);
-			gridRequest.getParams().put("parameter.equipment", null);
-
-			return ok(loadDropdown(gridRequest, "101", "103"));
-		} catch (InforException e) {
-			return badRequest(e);
-		} catch(Exception e) {
-			return serverError(e);
-		}
+		GridRequest gridRequest = new GridRequest("LVRECO", GridRequest.GRIDTYPE.LOV);
+		//
+		gridRequest.addParam("param.objclass", objclass);
+		gridRequest.addParam("param.objclassorg", null);
+		gridRequest.addParam("param.clgroup", null);
+		gridRequest.addParam("parameter.equipmentorg", null);
+		gridRequest.addParam("parameter.equipment", null);
+		return getPairListResponse(gridRequest, "101", "103");
 	}
 
 	@GET
@@ -63,39 +41,34 @@ public class WorkOrderLists extends DropdownValues {
 		GridRequest gridRequest = new GridRequest("LVWRSTDRP", GridRequest.GRIDTYPE.LOV);
 		// Definition of parameters
 		if (newwo) {
-			gridRequest.getParams().put("param.poldstat", "-");
-			gridRequest.getParams().put("param.pexcclause", "C");
+			gridRequest.addParam("param.poldstat", "-");
+			gridRequest.addParam("param.pexcclause", "C");
 		} else {
-			gridRequest.getParams().put("param.poldstat", wostatus);
-			gridRequest.getParams().put("param.pexcclause", "A");
+			gridRequest.addParam("param.poldstat", wostatus);
+			gridRequest.addParam("param.pexcclause", "A");
 		}
-		gridRequest.getParams().put("param.pfunrentity", "EVNT");
-		return ok(loadDropdown(gridRequest, "118", "629"));
+		gridRequest.addParam("param.pfunrentity", "EVNT");
+		return getPairListResponse(gridRequest, "118", "629");
 	}
 
 	@GET
 	@Path("/typecodes")
 	@Produces("application/json")
 	@Consumes("application/json")
-	public Response readTypeCodes(@QueryParam("wostatus") String wostatus, @QueryParam("wotype") String wotype,
-			@QueryParam("newwo") Boolean newwo, @QueryParam("ppmwo") Boolean ppmwo) throws InforException {
+	public Response readTypeCodes(@QueryParam("userGroup") String userGroup) throws InforException {
 		GridRequest gridRequest = new GridRequest("LVGROUPWOTYPE", GridRequest.GRIDTYPE.LOV);
-		gridRequest.getParams().put("parameter.pagemode", null);
-		gridRequest.getParams().put("parameter.usergroup", userTools.getUserGroup(authenticationTools.getInforContext()));
-		return ok(loadDropdown(gridRequest, "101", "103"));
-		}
+		gridRequest.addParam("parameter.pagemode", null);
+		gridRequest.addParam("parameter.usergroup", userGroup);
+		return getPairListResponse(gridRequest, "101", "103");
+	}
 
 	@GET
 	@Path("/prioritycodes")
 	@Produces("application/json")
 	@Consumes("application/json")
 	public Response readPriorityCodes() {
-		List<Pair> woPriorities = new LinkedList<Pair>();
-		woPriorities.add(new Pair("L", "Basse"));
-		woPriorities.add(new Pair("H", "Haute"));
-		woPriorities.add(new Pair("M", "Moyenne"));
-		woPriorities.add(new Pair("*", "Toutes Priorités"));
-		return ok(woPriorities);
+		GridRequest gridRequest = new GridRequest("LVJBPR", GridRequest.GRIDTYPE.LOV);
+		return getPairListResponse(gridRequest, "priority", "description");
 	}
 
 	/**
@@ -112,21 +85,15 @@ public class WorkOrderLists extends DropdownValues {
 	@Consumes("application/json")
 	public Response readFailureCodes(@QueryParam("objclass") String objclass,
 			@QueryParam("problemcode") String problemCode) {
-		try {
-			GridRequest gridRequest = new GridRequest("LVFAILURE", GridRequest.GRIDTYPE.LOV);
-			gridRequest.getParams().put("param.objclass", objclass);
-			gridRequest.getParams().put("param.problemcod", problemCode);
-			gridRequest.getParams().put("param.objclassorg", null);
-			gridRequest.getParams().put("param.clgroup", null);
-			gridRequest.getParams().put("userfunction", "WSJOBS");
-			gridRequest.getParams().put("parameter.equipmentorg", null);
-			gridRequest.getParams().put("parameter.equipment", null);
-			return ok(loadDropdown(gridRequest, "101", "103"));
-		} catch (InforException e) {
-			return badRequest(e);
-		} catch(Exception e) {
-			return serverError(e);
-		}
+		GridRequest gridRequest = new GridRequest("LVFAILURE", GridRequest.GRIDTYPE.LOV);
+		gridRequest.addParam("param.objclass", objclass);
+		gridRequest.addParam("param.problemcod", problemCode);
+		gridRequest.addParam("param.objclassorg", null);
+		gridRequest.addParam("param.clgroup", null);
+		gridRequest.addParam("userfunction", "WSJOBS");
+		gridRequest.addParam("parameter.equipmentorg", null);
+		gridRequest.addParam("parameter.equipment", null);
+		return getPairListResponse(gridRequest, "101", "103");
 	}
 
 	/**
@@ -138,23 +105,17 @@ public class WorkOrderLists extends DropdownValues {
 	@Consumes("application/json")
 	public Response readCauseCodes(@QueryParam("objclass") String objclass,
 			@QueryParam("failurecode") String failurecode, @QueryParam("problemcode") String problemcode) {
-		try {
 			GridRequest gridRequest = new GridRequest("LVCAUSE", GridRequest.GRIDTYPE.LOV);
 			// objclassorg, clgroup, failurecode, problemcode, objclass
-			gridRequest.getParams().put("param.objclass", objclass);
-			gridRequest.getParams().put("param.failurecode", failurecode);
-			gridRequest.getParams().put("param.problemcode", problemcode);
-			gridRequest.getParams().put("param.objclassorg", null);
-			gridRequest.getParams().put("param.clgroup", null);
-			gridRequest.getParams().put("parameter.equipmentorg", null);
-			gridRequest.getParams().put("parameter.equipment", null);
+			gridRequest.addParam("param.objclass", objclass);
+			gridRequest.addParam("param.failurecode", failurecode);
+			gridRequest.addParam("param.problemcode", problemcode);
+			gridRequest.addParam("param.objclassorg", null);
+			gridRequest.addParam("param.clgroup", null);
+			gridRequest.addParam("parameter.equipmentorg", null);
+			gridRequest.addParam("parameter.equipment", null);
 
-			return ok(loadDropdown(gridRequest, "101", "103"));
-		} catch (InforException e) {
-			return badRequest(e);
-		} catch(Exception e) {
-			return serverError(e);
-		}
+			return getPairListResponse(gridRequest, "101", "103");
 	}
 
 	@GET
@@ -164,23 +125,17 @@ public class WorkOrderLists extends DropdownValues {
 	public Response readActionCodes(@QueryParam("objclass") String objclass,
 			@QueryParam("failurecode") String failurecode, @QueryParam("problemcode") String problemcode,
 			@QueryParam("causecode") String causecode) {
-		try {
 			GridRequest gridRequest = new GridRequest("LVACTION", GridRequest.GRIDTYPE.LOV);
 
-			gridRequest.getParams().put("param.objclass", objclass);
-			gridRequest.getParams().put("param.failurecode", failurecode);
-			gridRequest.getParams().put("param.problemcode", problemcode);
-			gridRequest.getParams().put("param.causecode", causecode);
-			gridRequest.getParams().put("param.objclassorg", null);
-			gridRequest.getParams().put("param.clgroup", null);
-			gridRequest.getParams().put("parameter.equipmentorg", null);
-			gridRequest.getParams().put("parameter.equipment", null);
+			gridRequest.addParam("param.objclass", objclass);
+			gridRequest.addParam("param.failurecode", failurecode);
+			gridRequest.addParam("param.problemcode", problemcode);
+			gridRequest.addParam("param.causecode", causecode);
+			gridRequest.addParam("param.objclassorg", null);
+			gridRequest.addParam("param.clgroup", null);
+			gridRequest.addParam("parameter.equipmentorg", null);
+			gridRequest.addParam("parameter.equipment", null);
 
-			return ok(loadDropdown(gridRequest, "101", "103"));
-		} catch (InforException e) {
-			return badRequest(e);
-		} catch(Exception e) {
-			return serverError(e);
-		}
+			return getPairListResponse(gridRequest, "101", "103");
 	}
 }

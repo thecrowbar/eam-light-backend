@@ -1,4 +1,4 @@
-package ch.cern.cmms.eamlightweb.parts.autocomplete;
+package ch.cern.cmms.eamlightweb.meter.autocomplete;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.interceptor.Interceptors;
@@ -13,23 +13,22 @@ import ch.cern.cmms.eamlightejb.data.ApplicationData;
 import ch.cern.cmms.eamlightweb.tools.EAMLightController;
 import ch.cern.cmms.eamlightweb.tools.interceptors.RESTLoggingInterceptor;
 import ch.cern.eam.wshub.core.services.grids.entities.GridRequest;
-import ch.cern.eam.wshub.core.services.grids.entities.GridRequestFilter;
 
 @Path("/autocomplete")
 @ApplicationScoped
 @Interceptors({ RESTLoggingInterceptor.class })
-public class AutocompletePartUOM extends EAMLightController {
+public class AutocompleteMeterCode extends EAMLightController {
 
 	@GET
-	@Path("/part/uom/{code}")
+	@Path("/meters/meter/{code}")
 	@Produces("application/json")
 	@Consumes("application/json")
 	public Response complete(@PathParam("code") String code) {
-		GridRequest gridRequest = new GridRequest( "LVUOMS", GridRequest.GRIDTYPE.LOV, ApplicationData.AUTOCOMPLETE_RESULT_SIZE);
-		gridRequest.addParam("param.aspect", null);
-		gridRequest.addFilter("uomcode", code.toUpperCase(), "BEGINS", GridRequestFilter.JOINER.OR);
-		gridRequest.addFilter("description", code.toUpperCase(), "BEGINS");
-		return getPairListResponse(gridRequest, "uomcode", "description");
+		// Result
+		GridRequest gridRequest = new GridRequest("OSMETE", GridRequest.GRIDTYPE.LOV, ApplicationData.AUTOCOMPLETE_RESULT_SIZE);
+		gridRequest.setUseNative(true);
+		gridRequest.addFilter("metercode", code, "BEGINS");
+		return getPairListResponse(gridRequest, "metercode", "meterunit");
 	}
 
 }

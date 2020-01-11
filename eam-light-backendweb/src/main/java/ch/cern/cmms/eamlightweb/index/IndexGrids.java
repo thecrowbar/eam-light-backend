@@ -7,6 +7,7 @@ import ch.cern.eam.wshub.core.services.grids.entities.GridRequest;
 import ch.cern.eam.wshub.core.services.grids.entities.GridRequestFilter;
 import ch.cern.eam.wshub.core.tools.InforException;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import java.util.HashMap;
@@ -14,7 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-@RequestScoped
+@ApplicationScoped
 public class IndexGrids {
 
     @Inject
@@ -27,8 +28,8 @@ public class IndexGrids {
             map.put("description", "description");
             map.put("department", "mrc");
             GridRequest gridRequest = new GridRequest("93", "WSJOBS", "2005");
-            gridRequest.getGridRequestFilters().add(new GridRequestFilter("workordernum", keyword, operator));
-            List<IndexResult> result = inforClient.getTools().getGridTools().converGridResultToObject(IndexResult.class,
+            gridRequest.addFilter("workordernum", keyword, operator);
+            List<IndexResult> result = inforClient.getTools().getGridTools().convertGridResultToObject(IndexResult.class,
                     map,
                     inforClient.getGridsService().executeQuery(inforContext, gridRequest));
             result.forEach(indexResult -> indexResult.setType("JOB"));
@@ -47,11 +48,11 @@ public class IndexGrids {
             map.put("alias", "alias");
             map.put("serialnumber", "serial");
             GridRequest gridRequest = new GridRequest(gridId, gridName, dataspy);
-            gridRequest.getGridRequestFilters().add(new GridRequestFilter("equipmentno", keyword, operator, GridRequestFilter.JOINER.OR));
-            gridRequest.getGridRequestFilters().add(new GridRequestFilter("alias", keyword, operator, GridRequestFilter.JOINER.OR));
-            gridRequest.getGridRequestFilters().add(new GridRequestFilter("serialnumber", keyword, operator, GridRequestFilter.JOINER.OR));
-            //gridRequest.getGridRequestFilters().add(new GridRequestFilter("udfchar45", keyword, operator, GridRequestFilter.JOINER.OR));
-            List<IndexResult> result = inforClient.getTools().getGridTools().converGridResultToObject(IndexResult.class,
+            gridRequest.addFilter("equipmentno", keyword, operator, GridRequestFilter.JOINER.OR);
+            gridRequest.addFilter("alias", keyword, operator, GridRequestFilter.JOINER.OR);
+            gridRequest.addFilter("serialnumber", keyword, operator, GridRequestFilter.JOINER.OR);
+            //gridRequest.addFilter("udfchar45", keyword, operator, GridRequestFilter.JOINER.OR);
+            List<IndexResult> result = inforClient.getTools().getGridTools().convertGridResultToObject(IndexResult.class,
                     map,
                     inforClient.getGridsService().executeQuery(inforContext, gridRequest));
             result.forEach(indexResult -> indexResult.setType(type));
@@ -67,8 +68,8 @@ public class IndexGrids {
             map.put("partcode", "code");
             map.put("description", "description");
             GridRequest gridRequest = new GridRequest("80", "SSPART", "82");
-            gridRequest.getGridRequestFilters().add(new GridRequestFilter("partcode", keyword, operator));
-            List<IndexResult> result = inforClient.getTools().getGridTools().converGridResultToObject(IndexResult.class,
+            gridRequest.addFilter("partcode", keyword, operator);
+            List<IndexResult> result = inforClient.getTools().getGridTools().convertGridResultToObject(IndexResult.class,
                     map,
                     inforClient.getGridsService().executeQuery(inforContext, gridRequest));
             result.forEach(indexResult -> indexResult.setType("PART"));

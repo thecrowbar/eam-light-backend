@@ -29,3 +29,7 @@ eam-light-backendweb/eam-light-backendweb.iml
 # Settings
 .env
 .wildfly_admin_password
+
+# POM Backup
+*.versionsBackup
+
